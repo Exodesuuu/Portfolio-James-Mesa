@@ -350,35 +350,57 @@
       </div>
     </section>
 
-    <!-- Services Section -->
-    <section id="services" class="services-section">
+    <!-- Pricing & Packages Section -->
+    <section id="pricing" class="pricing-section">
       <div class="section-header">
-        <span class="section-tag">Services Overview</span>
-        <h2>Custom Sportswear Design Services</h2>
-        <p>Premium sublimation apparel mockups, identity concepts, and sportswear layouts ready for manufacturer sublimation printing.</p>
+        <span class="section-tag">Pricing & Licensing</span>
+        <h2>Commission Rates & <span class="gradient-text">Packages</span></h2>
+        <p>Whether you need a single pre-made design from my catalog or a fully custom bulk team package, I've got you covered.</p>
       </div>
 
-      <div class="services-grid-minimal">
-        <div class="service-card glass-panel">
-          <div class="service-icon"><i class="fa-solid fa-shirt"></i></div>
-          <h3>Custom Sublimation Jersey</h3>
-          <p>Full-jersey sublimation graphics, vector templates, details layout, sizing grids, and printing alignments files ready for factory production.</p>
-          <ul class="service-list">
-            <li><i class="fa-solid fa-circle-check"></i> High-Res 300DPI Layouts</li>
-            <li><i class="fa-solid fa-circle-check"></i> Complete Collar & Sleeve Specs</li>
-            <li><i class="fa-solid fa-circle-check"></i> Front + Back + Side views</li>
+      <div class="pricing-grid">
+        <!-- Tier 1 -->
+        <div class="pricing-card glass-panel">
+          <div class="pricing-icon"><i class="fa-solid fa-file-arrow-down"></i></div>
+          <h3>Single Pre-Made Design</h3>
+          <p class="pricing-desc">Purchase a commercial license for any existing design from my catalog.</p>
+          <ul class="pricing-features">
+            <li><i class="fa-solid fa-check"></i> Non-exclusive Commercial License</li>
+            <li><i class="fa-solid fa-check"></i> High-Res Print Ready Files</li>
+            <li><i class="fa-solid fa-check"></i> Vector Source (AI/EPS)</li>
+            <li><i class="fa-solid fa-check"></i> Instant Delivery</li>
           </ul>
+          <!-- Link to Google Form -->
+          <a href="https://forms.gle/Jr83hkyqjNx4mRbPA" target="_blank" class="btn btn-secondary btn-block">Inquire for Price</a>
         </div>
         
-        <div class="service-card glass-panel">
-          <div class="service-icon"><i class="fa-solid fa-shield-halved"></i></div>
-          <h3>Brand & Team Logo Branding</h3>
-          <p>Athletic branding and team logos designed to project authority, strength, and high-energy graphics. Delivery includes vector source formats.</p>
-          <ul class="service-list">
-            <li><i class="fa-solid fa-circle-check"></i> Vector Source Files (EPS/AI)</li>
-            <li><i class="fa-solid fa-circle-check"></i> High Contrast Sport Mascot Logos</li>
-            <li><i class="fa-solid fa-circle-check"></i> Secondary Logo & Crest variations</li>
+        <!-- Tier 2 (Highlighted) -->
+        <div class="pricing-card glass-panel popular-tier">
+          <div class="popular-badge">Most Popular</div>
+          <div class="pricing-icon"><i class="fa-solid fa-pen-nib"></i></div>
+          <h3>Custom Commission</h3>
+          <p class="pricing-desc">A brand new, custom-tailored jersey design built from scratch for your vision.</p>
+          <ul class="pricing-features">
+            <li><i class="fa-solid fa-check"></i> 100% Unique Custom Graphics</li>
+            <li><i class="fa-solid fa-check"></i> 3D Mockup Presentation</li>
+            <li><i class="fa-solid fa-check"></i> Sublimation Factory Ready</li>
+            <li><i class="fa-solid fa-check"></i> Up to 3 Design Revisions</li>
           </ul>
+          <a href="https://forms.gle/Jr83hkyqjNx4mRbPA" target="_blank" class="btn btn-primary btn-block">Start Custom Project</a>
+        </div>
+
+        <!-- Tier 3 -->
+        <div class="pricing-card glass-panel">
+          <div class="pricing-icon"><i class="fa-solid fa-users"></i></div>
+          <h3>Bulk Team Package</h3>
+          <p class="pricing-desc">Huge discounts for full sports teams, schools, or entire league rosters.</p>
+          <ul class="pricing-features">
+            <li><i class="fa-solid fa-check"></i> Discounted Bulk Rates (10+ Units)</li>
+            <li><i class="fa-solid fa-check"></i> Full Roster Names & Numbers Layout</li>
+            <li><i class="fa-solid fa-check"></i> Primary & Secondary Logo Included</li>
+            <li><i class="fa-solid fa-check"></i> Priority Support & Delivery</li>
+          </ul>
+          <a href="https://forms.gle/Jr83hkyqjNx4mRbPA" target="_blank" class="btn btn-secondary btn-block">Get Bulk Quote</a>
         </div>
       </div>
     </section>
@@ -435,47 +457,7 @@
           </div>
         </div>
 
-        <!-- Dynamic Message Sender (Attachment Button Added) -->
-        <div class="contact-form-panel glass-panel">
-          <h3>Quick Team Inquiry</h3>
-          <form id="contact-form" action="https://formsubmit.co/rj.bmesa@gmail.com" method="POST" enctype="multipart/form-data">
-            <input type="hidden" name="_captcha" value="false">
-            <div class="form-row">
-              <div class="form-group">
-                <label for="form-name">Your Name</label>
-                <input type="text" id="form-name" name="name" required placeholder="John Doe">
-              </div>
-              <div class="form-group">
-                <label for="form-team">Team Name / Org</label>
-                <input type="text" id="form-team" name="team" placeholder="Strikers FC">
-              </div>
-            </div>
-            
-            <div class="form-group">
-              <label for="form-subject">Subject</label>
-              <input type="text" id="form-subject" name="_subject" required placeholder="Sublimation Jersey Design">
-            </div>
-
-            <!-- Custom Styled Attachment Button -->
-            <div class="form-group">
-              <label>Reference Assets (.psd, .ai, .jpg, .png, .svg)</label>
-              <div class="file-input-wrapper">
-                <button type="button" class="btn btn-secondary btn-file-mock" id="file-mock-btn">
-                  <i class="fa-solid fa-paperclip"></i> Attach File
-                </button>
-                <span class="file-name-display" id="file-name-display">No file selected</span>
-                <input type="file" id="form-attachment" name="attachment" accept=".psd, .ai, .jpg, .jpeg, .png, .svg" style="display: none;">
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="form-message">Detailed Requirements</label>
-              <textarea id="form-message" name="message" rows="4" required placeholder="Tell me about the colors, pattern ideas, logo details, and sizes you need."></textarea>
-            </div>
-            
-            <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-paper-plane"></i> Send Inquiry</button>
-          </form>
-        </div>
+        <!-- Contact Form Removed (Replaced by Pricing Buttons) -->
       </div>
     </section>
 

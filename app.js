@@ -5,6 +5,19 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+  // Auto-clone marquee content to ensure seamless loop on ultra-wide screens
+  const marqueeWrap = document.querySelector('.marquee-wrap');
+  if (marqueeWrap) {
+    const marqueeContent = document.querySelector('.marquee-content');
+    if (marqueeContent) {
+      for (let i = 0; i < 4; i++) {
+        const clone = marqueeContent.cloneNode(true);
+        clone.setAttribute('aria-hidden', 'true');
+        marqueeWrap.appendChild(clone);
+      }
+    }
+  }
+
   // Global State
   let activeTab = 'jersey'; // jersey, shirt, poloshirt, logo
   let activeColorFilter = 'all';
