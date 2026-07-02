@@ -633,14 +633,12 @@ body.dark-mode .footer-logo-img {
   display: flex;
   white-space: nowrap;
   width: max-content;
-  animation: marquee-scroll 16s linear infinite;
-  flex-shrink: 0;
 }
 
 .marquee-content {
   display: flex;
   align-items: center;
-  flex-shrink: 0;
+  animation: marquee-scroll 16s linear infinite;
 }
 
 /* Transparent float badges */
@@ -694,7 +692,7 @@ body.dark-mode .footer-logo-img {
 
 @keyframes marquee-scroll {
   0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  100% { transform: translateX(-100%); }
 }
 
 /* ==========================================================================

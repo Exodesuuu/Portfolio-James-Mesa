@@ -438,21 +438,22 @@
         <!-- Dynamic Message Sender (Attachment Button Added) -->
         <div class="contact-form-panel glass-panel">
           <h3>Quick Team Inquiry</h3>
-          <form id="contact-form">
+          <form id="contact-form" action="https://formsubmit.co/rj.bmesa@gmail.com" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="_captcha" value="false">
             <div class="form-row">
               <div class="form-group">
                 <label for="form-name">Your Name</label>
-                <input type="text" id="form-name" required placeholder="John Doe">
+                <input type="text" id="form-name" name="name" required placeholder="John Doe">
               </div>
               <div class="form-group">
                 <label for="form-team">Team Name / Org</label>
-                <input type="text" id="form-team" placeholder="Strikers FC">
+                <input type="text" id="form-team" name="team" placeholder="Strikers FC">
               </div>
             </div>
             
             <div class="form-group">
               <label for="form-subject">Subject</label>
-              <input type="text" id="form-subject" required placeholder="Sublimation Jersey Design">
+              <input type="text" id="form-subject" name="_subject" required placeholder="Sublimation Jersey Design">
             </div>
 
             <!-- Custom Styled Attachment Button -->
@@ -463,13 +464,13 @@
                   <i class="fa-solid fa-paperclip"></i> Attach File
                 </button>
                 <span class="file-name-display" id="file-name-display">No file selected</span>
-                <input type="file" id="form-attachment" accept=".psd, .ai, .jpg, .jpeg, .png, .svg" style="display: none;">
+                <input type="file" id="form-attachment" name="attachment" accept=".psd, .ai, .jpg, .jpeg, .png, .svg" style="display: none;">
               </div>
             </div>
 
             <div class="form-group">
               <label for="form-message">Detailed Requirements</label>
-              <textarea id="form-message" rows="4" required placeholder="Tell me about the colors, pattern ideas, logo details, and sizes you need."></textarea>
+              <textarea id="form-message" name="message" rows="4" required placeholder="Tell me about the colors, pattern ideas, logo details, and sizes you need."></textarea>
             </div>
             
             <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-paper-plane"></i> Send Inquiry</button>

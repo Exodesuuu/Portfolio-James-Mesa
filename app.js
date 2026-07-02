@@ -18,39 +18,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const apparelCategoriesKeys = []; // Shirt, Poloshirt, Logo
   const featuredSliderImages = [];
   
-  // Reset favorites to 0 once for clean setup
-  if (!localStorage.getItem('jm_portfolio_fav_reset_v3')) {
-    localStorage.setItem('jm_portfolio_favorites', '[]');
-    localStorage.setItem('jm_portfolio_fav_reset_v3', 'true');
+  let favorites = [];
+  try {
+    favorites = JSON.parse(localStorage.getItem('jm_portfolio_favorites') || '[]');
+  } catch (e) {
+    console.warn('Could not access localStorage. Favorites will not be saved.', e);
   }
-  let favorites = JSON.parse(localStorage.getItem('jm_portfolio_favorites') || '[]');
   
   // Lightbox active navigation context
   let lightboxActiveList = [];
   let lightboxActiveIndex = 0;
   let lightboxCategoryName = '';
-
-  // Get filename from path without extension
-  function getFileNameWithoutExtension(path) {
-    if (!path) return '';
-    // If it is a web URL, try to extract filename or return fallback
-    if (path.startsWith('http')) {
-      const parts = path.split('/');
-      const lastPart = parts[parts.length - 1].split('?')[0]; // Strip query parameters
-      if (lastPart.match(/\.(jpg|jpeg|png|gif|svg|webp)/i)) {
-        const lastDotIdx = lastPart.lastIndexOf('.');
-        return lastPart.substring(0, lastDotIdx).replace(/[-_]/g, ' ');
-      }
-      return ''; // Fallback for Google Drive/Sites dynamic URLs
-    }
-    const parts = path.split('/');
-    const filenameWithExt = parts[parts.length - 1];
-    const lastDotIdx = filenameWithExt.lastIndexOf('.');
-    if (lastDotIdx === -1) return filenameWithExt;
-    // Replace hyphens/underscores with spaces for beautiful title display!
-    const nameStr = filenameWithExt.substring(0, lastDotIdx);
-    return nameStr.replace(/[-_]/g, ' ');
-  }
 
   // ==========================================================================
   // DATA INGESTION & NORMALIZATION (Sorted: Newest designs at the top!)
@@ -71,8 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (isPolo) typeGroup = 'poloshirt';
         else if (isLogo) typeGroup = 'logo';
 
-        // REVERSED the original image arrays so newest uploads show at the top!
-        const sortedImages = [...category.Images].reverse();
+        // Ensure manual sorting allows images to be shown exactly as in data.js
+        const sortedImages = [...category.Images];
 
         categoriesDb[cleanCatName] = {
           name: cleanCatName,
@@ -285,19 +263,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (sliderPrevBtn && sliderNextBtn) {
     sliderPrevBtn.addEventListener('click', prevSliderImage);
     sliderNextBtn.addEventListener('click', nextSliderImage);
-    
-    // Clicking the New Design Drop image opens it in the lightbox!
-    if (sliderImg) {
-      sliderImg.addEventListener('click', () => {
-        const current = featuredSliderImages[sliderIndex];
-        if (current) {
-          lightboxActiveList = featuredSliderImages.map(img => img.url);
-          openLightbox(sliderIndex, "New Drop");
-        }
-      });
-      sliderImg.style.cursor = 'pointer';
-    }
-
     updateSlider();
     resetSliderTimer();
   }
@@ -599,10 +564,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check if we are in individual picture mode or category type mode
     const isJerseyPictureView = (activeTab === 'jersey' && activeColorFilter !== 'all');
     const isApparelPictureView = ((activeTab === 'shirt' || activeTab === 'poloshirt') && activeSubCategory !== 'all');
-    const isLogoPictureView = (activeTab === 'logo'); // Logo always shows individual pictures directly
-    const isFavoritesOnlyView = showFavoritesOnly; // Favorites button bypasses category cards and displays favorited items directly
+    const isLogoView = (activeTab === 'logo');
 
-    if (isJerseyPictureView || isApparelPictureView || isLogoPictureView || isFavoritesOnlyView) {
+    if (isJerseyPictureView || isApparelPictureView || isLogoView) {
       // Gather all individual matching pictures
       const imageItems = [];
 
@@ -610,16 +574,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const originalCat = categoriesDb[key];
         
         originalCat.images.forEach((imgUrl) => {
-          // Verify sub-category classification if on T-Shirt/Polo (Folder-based path checks)
+          // Verify sub-category classification if on T-Shirt/Polo
           let matchesSubCategory = true;
           if (activeTab === 'shirt' || activeTab === 'poloshirt') {
+            const idx = originalCat.images.indexOf(imgUrl);
             if (activeTab === 'shirt') {
-              if (activeSubCategory === 'Sports' && !imgUrl.toLowerCase().includes('/sports/')) matchesSubCategory = false;
-              if (activeSubCategory === 'Event' && !imgUrl.toLowerCase().includes('/event/')) matchesSubCategory = false;
-              if (activeSubCategory === 'Corporate' && !imgUrl.toLowerCase().includes('/corporate/')) matchesSubCategory = false;
+              if (activeSubCategory === 'Sports' && idx % 3 !== 0) matchesSubCategory = false;
+              if (activeSubCategory === 'Event' && idx % 3 !== 1) matchesSubCategory = false;
+              if (activeSubCategory === 'Corporate' && idx % 3 !== 2) matchesSubCategory = false;
             } else if (activeTab === 'poloshirt') {
-              if (activeSubCategory === 'Sports' && !imgUrl.toLowerCase().includes('/sports/')) matchesSubCategory = false;
-              if (activeSubCategory === 'Corporate' && !imgUrl.toLowerCase().includes('/corporate/')) matchesSubCategory = false;
+              if (activeSubCategory === 'Sports' && idx % 2 !== 0) matchesSubCategory = false;
+              if (activeSubCategory === 'Corporate' && idx % 2 !== 1) matchesSubCategory = false;
             }
           }
 
@@ -720,9 +685,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Create Sub-Category Card Tile (Sports, Event, Corporate)
   function createSubCategoryCard(subCat, originalCat, isPolo) {
-    const matchKey = `/${subCat.name.toLowerCase()}/`;
-    // Ingest subset of images based on path inclusion
-    const subImages = originalCat.images.filter(img => img.toLowerCase().includes(matchKey));
+    const divisor = isPolo ? 2 : 3;
+    const remainder = subCat.name === 'Sports' ? 0 : (subCat.name === 'Event' ? 1 : (isPolo ? 1 : 2));
+    
+    // Ingest subset of images
+    const subImages = originalCat.images.filter((img, idx) => idx % divisor === remainder);
     const featuredImg = subImages[0] || originalCat.featuredImage;
 
     const card = document.createElement('div');
@@ -788,8 +755,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const card = document.createElement('div');
     card.className = 'category-tile-card individual-photo-card';
     
-    const fileNameStr = getFileNameWithoutExtension(item.url);
-    let titleStr = fileNameStr || `${item.categoryName} Template #${currentIndex + 1}`;
+    let titleStr = `${item.categoryName} Template #${currentIndex + 1}`;
     
     card.innerHTML = `
       <div class="tile-img-wrap">
@@ -876,7 +842,11 @@ document.addEventListener('DOMContentLoaded', () => {
       favorites.splice(index, 1);
     }
     
-    localStorage.setItem('jm_portfolio_favorites', JSON.stringify(favorites));
+    try {
+      localStorage.setItem('jm_portfolio_favorites', JSON.stringify(favorites));
+    } catch (e) {
+      console.warn('Could not save to localStorage.', e);
+    }
     
     const favCountBadge = document.getElementById('fav-count');
     if (favCountBadge) {
@@ -915,10 +885,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     lightboxImg.src = imageUrl;
     
-    const fileNameStr = getFileNameWithoutExtension(imageUrl);
     lightboxTag.textContent = `${lightboxCategoryName.toUpperCase()} COLLECTION`;
-    lightboxTitle.textContent = fileNameStr || `${lightboxCategoryName} Design #${lightboxActiveIndex + 1}`;
-    lightboxMeta.textContent = `Clean high-fidelity sportswear design concept, copyright of James Mesa. Ready for manufacturer sublimation setups. View design ${fileNameStr || '#' + (lightboxActiveIndex + 1)} of ${lightboxActiveList.length}.`;
+    lightboxTitle.textContent = `${lightboxCategoryName} Design #${lightboxActiveIndex + 1}`;
+    lightboxMeta.textContent = `Clean high-fidelity sportswear design concept, copyright of James Mesa. Ready for manufacturer sublimation setups. View design #${lightboxActiveIndex + 1} of ${lightboxActiveList.length}.`;
     
     const isFavorited = favorites.includes(imageUrl);
     lightboxFavActionBtn.classList.toggle('favorited', isFavorited);
@@ -998,9 +967,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const msg = document.getElementById('form-message');
       
       if (subj && msg) {
-        const fileNameStr = getFileNameWithoutExtension(url);
-        subj.value = `Inquiry: Design - ${fileNameStr}`;
-        msg.value = `Hi James,\n\nI am interested in your design template:\n${fileNameStr} (${url})\n\nPlease let me know the details for this layout!`;
+        subj.value = `Inquiry: Sportswear Design ${lightboxCategoryName} (#${lightboxActiveIndex + 1})`;
+        msg.value = `Hi James,\n\nI am interested in your design template:\n${url}\n\nPlease let me know the details for this ${lightboxCategoryName} layout!`;
         
         closeLightbox();
         document.getElementById('socials').scrollIntoView({ behavior: 'smooth' });
@@ -1079,30 +1047,6 @@ document.addEventListener('DOMContentLoaded', () => {
           mobileNavToggle.querySelector('i').className = 'fa-solid fa-bars';
         });
       }
-    });
-  }
-
-  // Contact form
-  if (contactForm) {
-    contactForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      
-      const name = document.getElementById('form-name').value;
-      const team = document.getElementById('form-team').value;
-      const subject = document.getElementById('form-subject').value;
-      const msg = document.getElementById('form-message').value;
-      
-      // Gather files info if present
-      let fileAttachmentText = '';
-      if (fileRealInput.files && fileRealInput.files.length > 0) {
-        fileAttachmentText = `\nAttached file reference: ${fileRealInput.files[0].name}`;
-      }
-      
-      const mailtoLink = `mailto:rj.bmesa@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
-        `Inquiry from: ${name}\nTeam/Organization: ${team}${fileAttachmentText}\n\nMessage:\n${msg}`
-      )}`;
-      
-      window.location.href = mailtoLink;
     });
   }
 
