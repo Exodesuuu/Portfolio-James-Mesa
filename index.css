@@ -995,6 +995,16 @@ body.dark-mode .footer-logo-img {
   padding: 20px;
 }
 
+/* Specific hover reveal logic for individual photos */
+.individual-photo-card .tile-overlay {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.individual-photo-card:hover .tile-overlay {
+  opacity: 1;
+}
+
 .tile-bottom-info {
   display: flex;
   flex-direction: column;

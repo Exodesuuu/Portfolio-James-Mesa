@@ -756,8 +756,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const card = document.createElement('div');
     card.className = 'category-tile-card individual-photo-card';
     
-    // Use the exact photo name (file name) as requested by the user
+    // Use the exact photo name (file name) as requested by the user, minus the extension
     let rawFileName = item.url.split('/').pop() || '';
+    rawFileName = rawFileName.replace(/\.(jpg|jpeg|png|webp|gif|svg)$/i, '');
     let titleStr = rawFileName || `${item.categoryName} Template #${currentIndex + 1}`;
     
     card.innerHTML = `
@@ -765,7 +766,6 @@ document.addEventListener('DOMContentLoaded', () => {
         <img class="tile-img" src="${item.url}" alt="${titleStr}" loading="lazy">
         <div class="tile-overlay">
           <div class="tile-bottom-info">
-            <span class="tile-tag">${item.type.toUpperCase()} - ${item.categoryName}</span>
             <h4 class="tile-title">${titleStr}</h4>
           </div>
         </div>
