@@ -691,14 +691,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const subStr = `/${subCat.name.toLowerCase()}/`;
     // Ingest subset of images matching the subcategory folder
     const subImages = originalCat.images.filter(img => img.toLowerCase().includes(subStr));
-    const featuredImg = subImages.length > 0 ? subImages[0] : originalCat.featuredImage;
+    const safeFeaturedImg = (subImages.length > 0 ? subImages[0] : originalCat.featuredImage) || 'https://placehold.co/600x600/1a1a1a/ffffff?text=Coming+Soon';
 
     const card = document.createElement('div');
     card.className = 'category-tile-card';
     
     card.innerHTML = `
       <div class="tile-img-wrap">
-        <img class="tile-img" src="${featuredImg}" alt="${subCat.title}" loading="lazy">
+        <img class="tile-img" src="${safeFeaturedImg}" alt="${subCat.title}" loading="lazy">
         <div class="tile-overlay">
           <div class="tile-bottom-info">
             <span class="tile-tag">${originalCat.type.toUpperCase()}</span>
@@ -731,7 +731,7 @@ document.addEventListener('DOMContentLoaded', () => {
     card.addEventListener('mouseleave', () => {
       clearInterval(cycleTimer);
       currentCycleIndex = 0;
-      imgEl.src = featuredImg;
+      imgEl.src = safeFeaturedImg;
     });
 
     // Clicking the sub-category tile triggers Picture View!
@@ -793,9 +793,11 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (cat.type === 'football') titleStr = `${cat.name} Football Jerseys`;
     else if (cat.type === 'hoodie') titleStr = `${cat.name} Custom Hoodies`;
     
+    const safeFeaturedImg = cat.featuredImage || 'https://placehold.co/600x600/1a1a1a/ffffff?text=Coming+Soon';
+    
     card.innerHTML = `
       <div class="tile-img-wrap">
-        <img class="tile-img" src="${cat.featuredImage}" alt="${titleStr}" loading="lazy">
+        <img class="tile-img" src="${safeFeaturedImg}" alt="${titleStr}" loading="lazy">
         <div class="tile-overlay">
           <div class="tile-bottom-info">
             <span class="tile-tag">${cat.type.toUpperCase()}</span>
@@ -828,12 +830,29 @@ document.addEventListener('DOMContentLoaded', () => {
     card.addEventListener('mouseleave', () => {
       clearInterval(cycleTimer);
       currentCycleIndex = 0;
-      imgEl.src = cat.featuredImage;
+      imgEl.src = safeFeaturedImg;
     });
 
     card.addEventListener('click', () => {
-      lightboxActiveList = cat.images;
-      openLightbox(currentCycleIndex, cat.name);
+      if (cat.type === 'jersey' && cat.color) {
+        // Change filter to the color to mimic clicking the nav filter
+        activeColorFilter = cat.color;
+        
+        // Update the UI buttons
+        const colorFiltersElement = document.getElementById('color-filters');
+        if (colorFiltersElement) {
+          colorFiltersElement.querySelectorAll('.color-swatch').forEach(sw => sw.classList.remove('active'));
+          const matchingBtn = colorFiltersElement.querySelector(`[data-color="${cat.color}"]`);
+          if (matchingBtn) matchingBtn.classList.add('active');
+        }
+        
+        applyFilters();
+      } else {
+        if (cat.images && cat.images.length > 0) {
+          lightboxActiveList = cat.images;
+          openLightbox(currentCycleIndex, cat.name);
+        }
+      }
     });
 
     return card;

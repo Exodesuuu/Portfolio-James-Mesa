@@ -231,48 +231,29 @@
         "Path":  "/design/cyan-custom-jersey-design",
         "IsDesignCategory":  true,
         "Images":  [
-                       "images/cyan/gray/ZONE.jpg",
-                       "images/cyan/gray/ZJJV.jpg",
-                       "images/cyan/gray/WAREHOUSE.jpg",
                        "images/cyan/VENOM.jpg",
-                       "images/cyan/gray/UNSTOPPABLE.jpg",
                        "images/cyan/UNICO HIJO.jpg",
-                       "images/cyan/gray/TMRLX.jpg",
                        "images/cyan/TARUVERSE.jpg",
                        "images/cyan/SKPI BALLERS.jpg",
                        "images/cyan/SALM CITY.jpg",
                        "images/cyan/PAPAWIS.jpg",
                        "images/cyan/PANDI-INAN.jpg",
-                       "images/cyan/gray/P.LAYGO.jpg",
-                       "images/cyan/gray/OUTRIGHT 1.jpg",
-                       "images/cyan/gray/NU LIPA.jpg",
                        "images/cyan/NEW WAVES.jpg",
                        "images/cyan/MANOCS.jpg",
                        "images/cyan/MACULOT GOLDEN.jpg",
                        "images/cyan/LOOBAN.jpg",
                        "images/cyan/KRITI.jpg",
-                       "images/cyan/gray/KRAUTZ.jpg",
-                       "images/cyan/gray/KRAUTZ V1.jpg",
-                       "images/cyan/gray/KIT THRIVERS.jpg",
-                       "images/cyan/gray/KALYE OTSO 1.jpg",
                        "images/cyan/KALI.jpg",
                        "images/cyan/JESSELMARK.jpg",
                        "images/cyan/INSAN M.jpg",
-                       "images/cyan/gray/IIEE PAMPANGA.jpg",
-                       "images/cyan/gray/HLMSGN.jpg",
                        "images/cyan/HARVEY.jpg",
-                       "images/cyan/gray/HARBAT.jpg",
                        "images/cyan/GUILD STATE.jpg",
                        "images/cyan/GENERATION OF MIRACLES.jpg",
                        "images/cyan/FIGHTERS.jpg",
                        "images/cyan/ELITES.jpg",
                        "images/cyan/CORINTHIANS.jpg",
                        "images/cyan/BRGY.BULAD.jpg",
-                       "images/cyan/gray/BLAST AND BURN.jpg",
-                       "images/cyan/gray/BAYOLET.jpg",
-                       "images/cyan/gray/BALLS GRAY.jpg",
-                       "images/cyan/ANTONIS 1.jpg",
-                       "images/cyan/gray/3X3 HUNTERS.jpg"
+                       "images/cyan/ANTONIS 1.jpg"
                    ]
     },
     {
@@ -363,14 +344,6 @@
                        "images/green/BAFI.jpg",
                        "images/green/AMORZECO.jpg",
                        "images/green/ALITAGTAG.jpg"
-                   ]
-    },
-    {
-        "Name":  "Home",
-        "Path":  "/home",
-        "IsDesignCategory":  false,
-        "Images":  [
-
                    ]
     },
     {
@@ -853,14 +826,6 @@
                        "images/tshirt/sports/ABM STELLAR.jpg",
                        "images/tshirt/corporate/A.L.L BADMINTON.jpg",
                        "images/tshirt/event/1.jpg"
-                   ]
-    },
-    {
-        "Name":  "Design - Unsorted",
-        "Path":  "/design/unsorted",
-        "IsDesignCategory":  true,
-        "Images":  [
-
                    ]
     },
     {
