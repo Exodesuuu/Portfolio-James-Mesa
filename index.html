@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="index.css?v=2">
+  <link rel="stylesheet" href="index.css">
 </head>
 <body class="dark-mode">
 
@@ -328,7 +328,6 @@
       <div class="catalogue-grid category-tiles-grid" id="catalogue-grid-container">
         <!-- Rendered dynamically via JavaScript -->
       </div>
-      
       <!-- Infinite Scroll Sentinel -->
       <div id="scroll-sentinel" style="height: 10px; width: 100%;"></div>
     </section>
@@ -510,6 +509,15 @@
           <img id="lightbox-img" src="" alt="High Resolution Design Preview">
           <div class="zoom-indicator"><i class="fa-solid fa-magnifying-glass-plus"></i> Double click to zoom</div>
         </div>
+        
+        <div class="lightbox-actions-bar" style="display: flex; gap: 15px; margin-top: 20px; justify-content: center; width: 100%;">
+          <button id="lightbox-fav-btn" class="btn btn-secondary toggle-favs-btn" style="border-radius: 50px; padding: 12px 24px;">
+            <i class="fa-regular fa-heart"></i> Favorite
+          </button>
+          <button id="lightbox-inquire-btn" class="btn btn-primary" style="border-radius: 50px; padding: 12px 24px;">
+            <i class="fa-solid fa-paper-plane"></i> Inquire About This
+          </button>
+        </div>
       </div>
 
       <button class="lightbox-nav next" id="lightbox-next-btn" aria-label="Next image"><i class="fa-solid fa-chevron-right"></i></button>
@@ -517,7 +525,7 @@
   </div>
 
   <!-- Script Modules -->
-  <script src="data.js?v=2"></script>
-  <script src="app.js?v=2"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

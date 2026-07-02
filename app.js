@@ -518,55 +518,46 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Infinite Scroll State
-  let currentImageItems = [];
-  let renderedCount = 0;
-  let scrollObserver = null;
-  const ITEMS_PER_PAGE = 20;
-
   // Filter keys logic
   function applyFilters() {
     let filteredKeys = [];
-    const isJerseyPictureView = (activeTab === 'jersey' && activeColorFilter !== 'all');
-    const isApparelPictureView = (activeTab === 'shirt' && activeSubCategory !== 'all');
-    const isStandaloneType = ['logo', 'baseball', 'football', 'hoodie', 'poloshirt'].includes(activeTab);
-    const isPictureView = isJerseyPictureView || isApparelPictureView || isStandaloneType;
 
     if (activeTab === 'jersey') {
       filteredKeys = jerseyCategoriesKeys.filter(key => {
         const cat = categoriesDb[key];
-        if (activeColorFilter !== 'all' && cat.color !== activeColorFilter) return false;
-        if (!isPictureView && searchQuery.length > 0) {
+        
+        if (activeColorFilter !== 'all' && cat.color !== activeColorFilter) {
+          return false;
+        }
+        
+        if (searchQuery.length > 0) {
           if (!cat.name.toLowerCase().includes(searchQuery)) return false;
         }
-        if (!isPictureView && showFavoritesOnly) {
+
+        if (showFavoritesOnly) {
           const hasFav = cat.images.some(img => favorites.includes(img));
           if (!hasFav) return false;
         }
+
         return true;
       });
     } else {
       filteredKeys = apparelCategoriesKeys.filter(key => {
         const cat = categoriesDb[key];
+        
         if (cat.type !== activeTab) return false;
-        if (!isPictureView && searchQuery.length > 0) {
+
+        if (searchQuery.length > 0) {
           if (!cat.name.toLowerCase().includes(searchQuery)) return false;
         }
-        if (!isPictureView && showFavoritesOnly) {
+
+        if (showFavoritesOnly) {
           const hasFav = cat.images.some(img => favorites.includes(img));
           if (!hasFav) return false;
         }
+
         return true;
       });
-    }
-
-    // Dynamic placeholder
-    if (catalogueSearchInput) {
-      if (isPictureView) {
-        catalogueSearchInput.placeholder = `Search designs...`;
-      } else {
-        catalogueSearchInput.placeholder = `Search categories...`;
-      }
     }
 
     const isFiltered = activeColorFilter !== 'all' || searchQuery.length > 0 || showFavoritesOnly || activeSubCategory !== 'all';
@@ -581,143 +572,151 @@ document.addEventListener('DOMContentLoaded', () => {
       resultCountText.textContent = `Showing all options for ${activeTab.toUpperCase()}`;
     }
     
-    renderGrid(filteredKeys, isPictureView);
-  }
-
-  // Render Image Batch Helper
-  function renderImageBatch() {
-    const itemsToRender = currentImageItems.slice(renderedCount, renderedCount + ITEMS_PER_PAGE);
-    const allUrls = currentImageItems.map(i => i.url);
-    
-    itemsToRender.forEach((item, index) => {
-      const card = createIndividualPictureTile(item, renderedCount + index, allUrls);
-      catalogueGrid.appendChild(card);
-    });
-    
-    renderedCount += itemsToRender.length;
+    renderGrid(filteredKeys);
   }
 
   // Render Grid
-  function renderGrid(keys, isPictureView) {
-    if (!catalogueGrid) return;
-    catalogueGrid.innerHTML = '';
-    
-    // Reset Infinite Scroll
-    if (scrollObserver) {
-      scrollObserver.disconnect();
-      scrollObserver = null;
-    }
-    renderedCount = 0;
-    currentImageItems = [];
+    const ITEMS_PER_PAGE = 12;
+    let renderedCount = 0;
+    let currentImageItems = [];
+    let scrollObserver = null;
 
-    if (isPictureView) {
-      keys.forEach(key => {
-        const originalCat = categoriesDb[key];
-        
-        originalCat.images.forEach((imgUrl) => {
-          let matchesSubCategory = true;
-          if (activeTab === 'shirt') {
-            if (activeSubCategory !== 'all') {
-              const subStr = `/${activeSubCategory.toLowerCase()}/`;
-              if (!imgUrl.toLowerCase().includes(subStr)) {
-                matchesSubCategory = false;
-              }
-            }
-          }
-
-          if (showFavoritesOnly && !favorites.includes(imgUrl)) {
-            matchesSubCategory = false;
-          }
-
-          if (searchQuery.length > 0) {
-            let rawFileName = imgUrl.split('/').pop() || '';
-            rawFileName = rawFileName.replace(/\.(jpg|jpeg|png|webp|gif|svg)$/i, '');
-            if (!rawFileName.toLowerCase().includes(searchQuery)) {
-              matchesSubCategory = false;
-            }
-          }
-
-          if (matchesSubCategory) {
-            currentImageItems.push({
-              url: imgUrl,
-              categoryName: originalCat.name,
-              type: originalCat.type
-            });
-          }
-        });
-      });
-
-      if (currentImageItems.length === 0) {
-        catalogueGrid.innerHTML = `
-          <div class="grid-empty-state">
-            <i class="fa-solid fa-folder-open"></i>
-            <h3>No designs match your criteria</h3>
-            <p>Try clearing your active filters or searching something else.</p>
-          </div>
-        `;
-        return;
-      }
-
-      // Render first batch
-      renderImageBatch();
+    function renderImageBatch() {
+      const itemsToRender = currentImageItems.slice(renderedCount, renderedCount + ITEMS_PER_PAGE);
+      const allUrls = currentImageItems.map(i => i.url);
       
-      // Setup Observer
-      const sentinel = document.getElementById('scroll-sentinel');
-      if (sentinel) {
-        scrollObserver = new IntersectionObserver((entries) => {
-          if (entries[0].isIntersecting && renderedCount < currentImageItems.length) {
-            renderImageBatch();
-          }
-        }, { rootMargin: '400px' });
-        scrollObserver.observe(sentinel);
-      }
+      itemsToRender.forEach((item, index) => {
+        const card = createIndividualPictureTile(item, renderedCount + index, allUrls);
+        catalogueGrid.appendChild(card);
+      });
+      
+      renderedCount += itemsToRender.length;
+    }
 
-    } else {
-      // Render Category Type Tiles ONLY (ALL is active)
-      if (keys.length === 0) {
-        catalogueGrid.innerHTML = `
-          <div class="grid-empty-state">
-            <i class="fa-solid fa-folder-open"></i>
-            <h3>No categories match your criteria</h3>
-            <p>Try clearing your active filters or searching something else.</p>
-          </div>
-        `;
-        return;
+    // Render Grid
+    function renderGrid(keys) {
+      if (!catalogueGrid) return;
+      catalogueGrid.innerHTML = '';
+      
+      // Reset Infinite Scroll
+      if (scrollObserver) {
+        scrollObserver.disconnect();
+        scrollObserver = null;
       }
-
-      if (activeTab === 'jersey') {
-        // Show color category type cards
+      renderedCount = 0;
+      currentImageItems = [];
+  
+      // Check if we are in individual picture mode or category type mode
+      const isJerseyPictureView = (activeTab === 'jersey' && activeColorFilter !== 'all');
+      const isApparelPictureView = (activeTab === 'shirt' && activeSubCategory !== 'all');
+      const isStandaloneType = ['logo', 'baseball', 'football', 'hoodie', 'poloshirt'].includes(activeTab);
+  
+      if (isJerseyPictureView || isApparelPictureView || isStandaloneType) {
+        // Gather all individual matching pictures
         keys.forEach(key => {
           const originalCat = categoriesDb[key];
-          const card = createCategoryTileElement(originalCat);
-          catalogueGrid.appendChild(card);
+          
+          originalCat.images.forEach((imgUrl) => {
+            // Verify sub-category classification if on T-Shirt by checking the actual folder path in the URL
+            let matchesSubCategory = true;
+            if (activeTab === 'shirt') {
+              if (activeSubCategory !== 'all') {
+                const subStr = `/${activeSubCategory.toLowerCase()}/`;
+                if (!imgUrl.toLowerCase().includes(subStr)) {
+                  matchesSubCategory = false;
+                }
+              }
+            }
+  
+            // Verify favorites only
+            if (showFavoritesOnly && !favorites.includes(imgUrl)) {
+              matchesSubCategory = false;
+            }
+  
+            // Verify search queries
+            if (searchQuery.length > 0 && !originalCat.name.toLowerCase().includes(searchQuery)) {
+              matchesSubCategory = false;
+            }
+  
+            if (matchesSubCategory) {
+              currentImageItems.push({
+                url: imgUrl,
+                categoryName: originalCat.name,
+                type: originalCat.type
+              });
+            }
+          });
         });
-      } else if (activeTab === 'shirt') {
-        // Show 3 sub-category type cards for T-Shirts: Sports, Event, Corporate
-        const originalCat = categoriesDb['Tshirt'] || keys.map(k => categoriesDb[k])[0];
-        if (originalCat) {
-          const subs = [
-            { name: 'Sports', title: 'Sports T-Shirts' },
-            { name: 'Event', title: 'Event T-Shirts' },
-            { name: 'Corporate', title: 'Corporate T-Shirts' }
-          ];
-          subs.forEach(sub => {
-            const card = createSubCategoryCard(sub, originalCat, false);
+  
+        if (currentImageItems.length === 0) {
+          catalogueGrid.innerHTML = `
+            <div class="grid-empty-state">
+              <i class="fa-solid fa-folder-open"></i>
+              <h3>No designs match your criteria</h3>
+              <p>Try clearing your active filters or searching something else.</p>
+            </div>
+          `;
+          return;
+        }
+  
+        // Render first batch
+        renderImageBatch();
+        
+        // Setup Observer
+        const sentinel = document.getElementById('scroll-sentinel');
+        if (sentinel) {
+          scrollObserver = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && renderedCount < currentImageItems.length) {
+              renderImageBatch();
+            }
+          }, { rootMargin: '400px' });
+          scrollObserver.observe(sentinel);
+        }
+  
+      } else {
+        // Render Category Type Tiles ONLY (ALL is active)
+        if (keys.length === 0) {
+          catalogueGrid.innerHTML = `
+            <div class="grid-empty-state">
+              <i class="fa-solid fa-folder-open"></i>
+              <h3>No categories match your criteria</h3>
+              <p>Try clearing your active filters or searching something else.</p>
+            </div>
+          `;
+          return;
+        }
+  
+        if (activeTab === 'jersey') {
+          // Show color category type cards
+          keys.forEach(key => {
+            const originalCat = categoriesDb[key];
+            const card = createCategoryTileElement(originalCat);
+            catalogueGrid.appendChild(card);
+          });
+        } else if (activeTab === 'shirt') {
+          // Show 3 sub-category type cards for T-Shirts: Sports, Event, Corporate
+          const originalCat = categoriesDb['Tshirt'] || keys.map(k => categoriesDb[k])[0];
+          if (originalCat) {
+            const subs = [
+              { name: 'Sports', title: 'Sports T-Shirts' },
+              { name: 'Event', title: 'Event T-Shirts' },
+              { name: 'Corporate', title: 'Corporate T-Shirts' }
+            ];
+            subs.forEach(sub => {
+              const card = createSubCategoryCard(sub, originalCat, false);
+              catalogueGrid.appendChild(card);
+            });
+          }
+        } else {
+          // Logo, baseball, football, hoodie or other categories fallback
+          keys.forEach(key => {
+            const originalCat = categoriesDb[key];
+            const card = createCategoryTileElement(originalCat);
             catalogueGrid.appendChild(card);
           });
         }
-      } else {
-        // Logo, baseball, football, hoodie or other categories fallback
-        keys.forEach(key => {
-          const originalCat = categoriesDb[key];
-          const card = createCategoryTileElement(originalCat);
-          catalogueGrid.appendChild(card);
-        });
       }
     }
-  }
-
-  // Create Sub-Category Card Tile
   function createSubCategoryCard(subCat, originalCat, isPolo) {
     const subStr = `/${subCat.name.toLowerCase()}/`;
     // Ingest subset of images matching the subcategory folder
@@ -947,6 +946,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const lightboxPrevBtn = document.getElementById('lightbox-prev-btn');
   const lightboxNextBtn = document.getElementById('lightbox-next-btn');
   const imgWrap = document.querySelector('.lightbox-image-wrap');
+  const lightboxFavActionBtn = document.getElementById('lightbox-fav-btn');
+  const lightboxInquireBtn = document.getElementById('lightbox-inquire-btn');
 
   function openLightbox(index, categoryName) {
     lightboxActiveIndex = index;
@@ -1047,17 +1048,15 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastScrollY = window.scrollY;
   
   window.addEventListener('scroll', () => {
-    const currentScrollY = window.scrollY;
-    
-    // Hide when scrolling down, show when scrolling up
-    if (currentScrollY > lastScrollY && currentScrollY > 80) {
+    // Smart header hiding (hide on scroll down, show on scroll up)
+    if (window.scrollY > lastScrollY && window.scrollY > 80) {
       header.classList.add('scroll-hidden');
     } else {
       header.classList.remove('scroll-hidden');
     }
+    lastScrollY = window.scrollY;
     
-    lastScrollY = currentScrollY;
-    
+    // Scrolled style (glass effect)
     if (window.scrollY > 40) {
       header.classList.add('scrolled');
     } else {
@@ -1071,27 +1070,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const sections = document.querySelectorAll('section');
     const navLinks = document.querySelectorAll('.nav-lnk');
     
-    let currentId = 'catalogue'; // default
-    
+    let currentId = '';
     sections.forEach(sec => {
-      const top = sec.offsetTop - 200; // Increase offset to trigger earlier
+      const top = sec.offsetTop - 120; // Offset for header
       const height = sec.offsetHeight;
       if (window.scrollY >= top && window.scrollY < top + height) {
         currentId = sec.getAttribute('id');
       }
     });
 
-    // Check if user scrolled to the absolute bottom of the page
-    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 50) {
-      currentId = 'socials';
+    if (currentId) {
+      navLinks.forEach(lnk => {
+        lnk.classList.remove('active');
+        if (lnk.getAttribute('href') === `#${currentId}`) {
+          lnk.classList.add('active');
+        }
+      });
     }
-
-    navLinks.forEach(lnk => {
-      lnk.classList.remove('active');
-      if (lnk.getAttribute('href') === `#${currentId}`) {
-        lnk.classList.add('active');
-      }
-    });
   }
 
   // Initialize favorites count
