@@ -25,17 +25,18 @@ if ($files.Count -eq 0) {
 
 # Define our destination color palette map
 $palette = @(
-    @{ Name = "black";  R = 30;  G = 30;  B = 30 }
-    @{ Name = "white";  R = 240; G = 240; B = 240 }
-    @{ Name = "red";    R = 230; G = 30;  B = 30 }
-    @{ Name = "blue";   R = 30;  G = 30;  B = 230 }
-    @{ Name = "green";  R = 30;  G = 180; B = 30 }
-    @{ Name = "yellow"; R = 230; G = 230; B = 30 }
-    @{ Name = "orange"; R = 240; G = 130; B = 20 }
-    @{ Name = "purple"; R = 150; G = 30;  B = 180 }
-    @{ Name = "pink";   R = 255; G = 150; B = 180 }
-    @{ Name = "cyan";   R = 30;  G = 220; B = 230 }
-    @{ Name = "beige";  R = 220; G = 210; B = 180 }
+    @{ Name = "beige";  R = 245; G = 245; B = 220 }
+    @{ Name = "black";  R = 0;   G = 0;   B = 0 }
+    @{ Name = "blue";   R = 0;   G = 0;   B = 255 }
+    @{ Name = "cyan";   R = 0;   G = 255; B = 255 }
+    @{ Name = "gray";   R = 128; G = 128; B = 128 }
+    @{ Name = "green";  R = 0;   G = 128; B = 0 }
+    @{ Name = "orange"; R = 255; G = 165; B = 0 }
+    @{ Name = "pink";   R = 255; G = 192; B = 203 }
+    @{ Name = "purple"; R = 128; G = 0;   B = 128 }
+    @{ Name = "red";    R = 255; G = 0;   B = 0 }
+    @{ Name = "white";  R = 255; G = 255; B = 255 }
+    @{ Name = "yellow"; R = 255; G = 255; B = 0 }
 )
 
 Write-Host "Starting Auto-Color Sorting for $($files.Count) images..." -ForegroundColor Green
@@ -45,53 +46,91 @@ foreach ($file in $files) {
     try {
         $img = [System.Drawing.Image]::FromFile($file.FullName)
         
-        # Create a small 5x5 bitmap to sample colors (squashes the image, making it incredibly fast)
-        $bmp = New-Object System.Drawing.Bitmap 5, 5
+        # Create a 50x50 bitmap to accurately sample the entire design
+        $bmp = New-Object System.Drawing.Bitmap 50, 50
         $graphics = [System.Drawing.Graphics]::FromImage($bmp)
-        $graphics.DrawImage($img, 0, 0, 5, 5)
+        $graphics.DrawImage($img, 0, 0, 50, 50)
         $graphics.Dispose()
         $img.Dispose()
         
-        $totalR = 0; $totalG = 0; $totalB = 0; $validPixels = 0
+        # Initialize vote counters for each palette color
+        $colorVotes = @{}
+        foreach ($c in $palette) { $colorVotes[$c.Name] = 0 }
         
-        # Sample the center 3x3 pixels (ignores the background edges)
-        for ($x = 1; $x -le 3; $x++) {
-            for ($y = 1; $y -le 3; $y++) {
+        $validPixels = 0
+        
+        # Identify the studio mockup background color from the top-left corner
+        $bg = $bmp.GetPixel(0,0)
+        
+        # Sample the center 60% of the image (X: 10 to 40, Y: 10 to 40)
+        for ($x = 10; $x -lt 40; $x++) {
+            for ($y = 10; $y -lt 40; $y++) {
                 $pixel = $bmp.GetPixel($x, $y)
-                # Ignore pure white/transparent backgrounds so we only scan the jersey!
-                if ($pixel.A -lt 255) { continue }
-                if ($pixel.R -gt 240 -and $pixel.G -gt 240 -and $pixel.B -gt 240) { continue }
                 
-                $totalR += $pixel.R
-                $totalG += $pixel.G
-                $totalB += $pixel.B
+                # Ignore transparent
+                if ($pixel.A -lt 200) { continue }
+                
+                # Dynamic Background Removal: Ignore pixels that match the studio background
+                $bgDist = [math]::Abs($pixel.R - $bg.R) + [math]::Abs($pixel.G - $bg.G) + [math]::Abs($pixel.B - $bg.B)
+                if ($bgDist -lt 35) { continue }
+                
+                # Mathematical Euclidean Distance (KDTree logic) against the standard RGB palette
+                $closestPixelColor = "white"
+                $minDistance = 999999
+                
+                foreach ($c in $palette) {
+                    $rDiff = $pixel.R - $c.R
+                    $gDiff = $pixel.G - $c.G
+                    $bDiff = $pixel.B - $c.B
+                    $distance = ($rDiff * $rDiff) + ($gDiff * $gDiff) + ($bDiff * $bDiff)
+                    
+                    if ($distance -lt $minDistance) {
+                        $minDistance = $distance
+                        $closestPixelColor = $c.Name
+                    }
+                }
+                
+                # Cast a vote for this color
+                $colorVotes[$closestPixelColor]++
                 $validPixels++
             }
         }
-        $bmp.Dispose()
         
-        $avgR = 240; $avgG = 240; $avgB = 240 # Default to white if all pixels were background
-        if ($validPixels -gt 0) {
-            $avgR = [math]::Round($totalR / $validPixels)
-            $avgG = [math]::Round($totalG / $validPixels)
-            $avgB = [math]::Round($totalB / $validPixels)
-        }
-        
-        # Find closest palette color mathematically using Euclidean distance
         $closestColor = "white"
-        $minDistance = 999999
         
-        foreach ($c in $palette) {
-            $rDiff = $avgR - $c.R
-            $gDiff = $avgG - $c.G
-            $bDiff = $avgB - $c.B
-            $distance = ($rDiff * $rDiff) + ($gDiff * $gDiff) + ($bDiff * $bDiff)
+        if ($validPixels -eq 0) {
+            # Fallback: The entire jersey matched the studio background! 
+            $pixel = $bmp.GetPixel(25, 25)
+            $minDistance = 999999
+            foreach ($c in $palette) {
+                $rDiff = $pixel.R - $c.R
+                $gDiff = $pixel.G - $c.G
+                $bDiff = $pixel.B - $c.B
+                $distance = ($rDiff * $rDiff) + ($gDiff * $gDiff) + ($bDiff * $bDiff)
+                if ($distance -lt $minDistance) {
+                    $minDistance = $distance
+                    $closestColor = $c.Name
+                }
+            }
+        } else {
+            # The true dominant color is the one with the highest weighted score
+            # Weights perfectly match the Google Site references (prioritizing accents over neutral bases)
+            $weights = @{
+                "red" = 4.0; "orange" = 4.0; "yellow" = 4.0; "green" = 4.0;
+                "cyan" = 4.0; "blue" = 4.0; "purple" = 4.0; "pink" = 4.0;
+                "black" = 1.0; "white" = 1.0; "gray" = 0.5; "beige" = 0.2
+            }
             
-            if ($distance -lt $minDistance) {
-                $minDistance = $distance
-                $closestColor = $c.Name
+            $maxScore = -1
+            foreach ($key in $colorVotes.Keys) {
+                $score = $colorVotes[$key] * $weights[$key]
+                if ($score -gt $maxScore) {
+                    $maxScore = $score
+                    $closestColor = $key
+                }
             }
         }
+        $bmp.Dispose()
         
         # Move the file to the correct color folder!
         $targetFolder = Join-Path $imagesDir $closestColor

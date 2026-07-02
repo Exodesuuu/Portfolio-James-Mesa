@@ -6,6 +6,25 @@ $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 $imagesDir = Join-Path $scriptPath "images"
 $dataJsPath = Join-Path $scriptPath "data.js"
 
+Add-Type -AssemblyName System.Drawing
+
+function Get-DateTaken {
+    param([string]$FilePath)
+    $img = $null
+    try {
+        $img = [System.Drawing.Image]::FromFile($FilePath)
+        $prop = $img.GetPropertyItem(36867) # PropertyTagExifDTOrig
+        $dateString = [System.Text.Encoding]::ASCII.GetString($prop.Value)
+        $dateTaken = [datetime]::ParseExact($dateString.Substring(0, 19), "yyyy:MM:dd HH:mm:ss", $null)
+        $img.Dispose()
+        return $dateTaken
+    } catch {
+        if ($null -ne $img) { $img.Dispose() }
+        # Fallback to LastWriteTime if no EXIF Date Taken exists
+        return (Get-Item -LiteralPath $FilePath).LastWriteTime
+    }
+}
+
 if (-not (Test-Path $imagesDir)) {
     Write-Error "Could not find 'images/' folder in $scriptPath. Please make sure this script is placed in the same folder as index.html."
     Read-Host "Press Enter to exit..."
@@ -29,9 +48,13 @@ $categoryMap = @{
     "purple"     = @{ Name = "Design - Purple"; Path = "/design/purple-custom-jersey-design"; IsDesign = $true }
     "pink"       = @{ Name = "Design - Pink"; Path = "/design/pink-custom-jersey-design"; IsDesign = $true }
     "cyan"       = @{ Name = "Design - Cyan"; Path = "/design/cyan-custom-jersey-design"; IsDesign = $true }
+    "gray"       = @{ Name = "Design - Gray"; Path = "/design/gray-custom-jersey-design"; IsDesign = $true }
     "beige"      = @{ Name = "Design - Beige"; Path = "/design/beige-custom-jersey-design"; IsDesign = $true }
     "tshirt"     = @{ Name = "Design - Tshirt"; Path = "/design/tshirt-custom-jersey-design"; IsDesign = $true }
     "poloshirt"  = @{ Name = "Design - Poloshirt"; Path = "/design/poloshirt-custom-jersey-design"; IsDesign = $true }
+    "football"   = @{ Name = "Design - Football"; Path = "/design/football-custom-jersey-design"; IsDesign = $true }
+    "baseball"   = @{ Name = "Design - Baseball"; Path = "/design/baseball-custom-jersey-design"; IsDesign = $true }
+    "hoodie"     = @{ Name = "Design - Hoodie"; Path = "/design/hoodie-custom-jersey-design"; IsDesign = $true }
     "logo"       = @{ Name = "Design - Logo"; Path = "/design/logo-designs"; IsDesign = $true }
 }
 
@@ -55,8 +78,14 @@ foreach ($folder in $folders) {
         $_.Extension -match "\.(jpg|jpeg|png|gif|svg|webp)$" 
     }
     
-    # Sort files by CreationTime descending so the newest files are placed at the top of the array!
-    $sortedFiles = $files | Sort-Object CreationTime -Descending
+    # Sort files by EXIF Date Taken (falling back to LastWriteTime if no EXIF exists)
+    $filesWithDates = $files | ForEach-Object {
+        [PSCustomObject]@{
+            File = $_
+            Date = Get-DateTaken $_.FullName
+        }
+    }
+    $sortedFiles = $filesWithDates | Sort-Object Date -Descending | Select-Object -ExpandProperty File
     
     $localPaths = @()
     foreach ($file in $sortedFiles) {

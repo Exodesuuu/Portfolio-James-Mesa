@@ -56,10 +56,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const isShirt = category.Name.toLowerCase().includes('tshirt') || category.Name.toLowerCase().includes('shirt') && !category.Name.toLowerCase().includes('polo');
         const isPolo = category.Name.toLowerCase().includes('polo');
         const isLogo = category.Name.toLowerCase().includes('logo');
+        const isBaseball = category.Name.toLowerCase().includes('baseball');
+        const isFootball = category.Name.toLowerCase().includes('football');
+        const isHoodie = category.Name.toLowerCase().includes('hoodie');
         
         let typeGroup = 'jersey';
         if (isShirt) typeGroup = 'shirt';
         else if (isPolo) typeGroup = 'poloshirt';
+        else if (isBaseball) typeGroup = 'baseball';
+        else if (isFootball) typeGroup = 'football';
+        else if (isHoodie) typeGroup = 'hoodie';
         else if (isLogo) typeGroup = 'logo';
 
         // Ensure manual sorting allows images to be shown exactly as in data.js
@@ -247,13 +253,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (featuredSliderImages.length === 0) return;
     const current = featuredSliderImages[sliderIndex];
     
+    // Smooth transition: brief fade out, swap, fade in
     sliderImg.style.opacity = 0;
     setTimeout(() => {
       sliderImg.src = current.url;
       sliderCategory.textContent = current.category;
       sliderIndicator.textContent = `${sliderIndex + 1} / ${featuredSliderImages.length}`;
       sliderImg.style.opacity = 1;
-    }, 200);
+    }, 600);
   }
 
   function nextSliderImage() {
@@ -341,8 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Configure sub-category filter lists dynamically
   const subCategoryOptions = {
-    shirt: ['Sports', 'Event', 'Corporate'],
-    poloshirt: ['Sports', 'Corporate']
+    shirt: ['Sports', 'Event', 'Corporate']
   };
 
   function updateSubCategoryUI() {
@@ -357,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     subCategoryFiltersWrapper.classList.remove('hidden');
-    subCategoryLabel.textContent = `${activeTab === 'shirt' ? 'T-Shirt' : 'Polo Shirt'} Type`;
+    subCategoryLabel.textContent = `T-Shirt Type`;
 
     // Render "All" option
     const allBtn = document.createElement('button');
@@ -421,7 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
           colorFilters.querySelector('[data-color="all"]').classList.add('active');
         }
 
-        // Render sub-category filters for Tshirt/Polo
+        // Render sub-category filters for Tshirt
         updateSubCategoryUI();
         applyFilters();
       }
@@ -560,8 +566,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update results label description
     if (activeTab === 'jersey' && activeColorFilter !== 'all') {
       resultCountText.textContent = `Showing individual designs for ${activeColorFilter} jerseys`;
-    } else if ((activeTab === 'shirt' || activeTab === 'poloshirt') && activeSubCategory !== 'all') {
-      resultCountText.textContent = `Showing individual ${activeSubCategory} ${activeTab === 'shirt' ? 'T-Shirt' : 'Polo'} designs`;
+    } else if (activeTab === 'shirt' && activeSubCategory !== 'all') {
+      resultCountText.textContent = `Showing individual ${activeSubCategory} T-Shirt designs`;
     } else {
       resultCountText.textContent = `Showing all options for ${activeTab.toUpperCase()}`;
     }
@@ -576,10 +582,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Check if we are in individual picture mode or category type mode
     const isJerseyPictureView = (activeTab === 'jersey' && activeColorFilter !== 'all');
-    const isApparelPictureView = ((activeTab === 'shirt' || activeTab === 'poloshirt') && activeSubCategory !== 'all');
-    const isLogoView = (activeTab === 'logo');
+    const isApparelPictureView = (activeTab === 'shirt' && activeSubCategory !== 'all');
+    const isStandaloneType = ['logo', 'baseball', 'football', 'hoodie', 'poloshirt'].includes(activeTab);
 
-    if (isJerseyPictureView || isApparelPictureView || isLogoView) {
+    if (isJerseyPictureView || isApparelPictureView || isStandaloneType) {
       // Gather all individual matching pictures
       const imageItems = [];
 
@@ -587,17 +593,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const originalCat = categoriesDb[key];
         
         originalCat.images.forEach((imgUrl) => {
-          // Verify sub-category classification if on T-Shirt/Polo
+          // Verify sub-category classification if on T-Shirt by checking the actual folder path in the URL
           let matchesSubCategory = true;
-          if (activeTab === 'shirt' || activeTab === 'poloshirt') {
-            const idx = originalCat.images.indexOf(imgUrl);
-            if (activeTab === 'shirt') {
-              if (activeSubCategory === 'Sports' && idx % 3 !== 0) matchesSubCategory = false;
-              if (activeSubCategory === 'Event' && idx % 3 !== 1) matchesSubCategory = false;
-              if (activeSubCategory === 'Corporate' && idx % 3 !== 2) matchesSubCategory = false;
-            } else if (activeTab === 'poloshirt') {
-              if (activeSubCategory === 'Sports' && idx % 2 !== 0) matchesSubCategory = false;
-              if (activeSubCategory === 'Corporate' && idx % 2 !== 1) matchesSubCategory = false;
+          if (activeTab === 'shirt') {
+            if (activeSubCategory !== 'all') {
+              const subStr = `/${activeSubCategory.toLowerCase()}/`;
+              if (!imgUrl.toLowerCase().includes(subStr)) {
+                matchesSubCategory = false;
+              }
             }
           }
 
@@ -672,21 +675,8 @@ document.addEventListener('DOMContentLoaded', () => {
             catalogueGrid.appendChild(card);
           });
         }
-      } else if (activeTab === 'poloshirt') {
-        // Show 2 sub-category type cards for Polo Shirts: Sports, Corporate
-        const originalCat = categoriesDb['Poloshirt'] || keys.map(k => categoriesDb[k])[0];
-        if (originalCat) {
-          const subs = [
-            { name: 'Sports', title: 'Sports Polos' },
-            { name: 'Corporate', title: 'Corporate Polos' }
-          ];
-          subs.forEach(sub => {
-            const card = createSubCategoryCard(sub, originalCat, true);
-            catalogueGrid.appendChild(card);
-          });
-        }
       } else {
-        // Logo or other categories fallback
+        // Logo, baseball, football, hoodie or other categories fallback
         keys.forEach(key => {
           const originalCat = categoriesDb[key];
           const card = createCategoryTileElement(originalCat);
@@ -696,14 +686,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Create Sub-Category Card Tile (Sports, Event, Corporate)
+  // Create Sub-Category Card Tile
   function createSubCategoryCard(subCat, originalCat, isPolo) {
-    const divisor = isPolo ? 2 : 3;
-    const remainder = subCat.name === 'Sports' ? 0 : (subCat.name === 'Event' ? 1 : (isPolo ? 1 : 2));
-    
-    // Ingest subset of images
-    const subImages = originalCat.images.filter((img, idx) => idx % divisor === remainder);
-    const featuredImg = subImages[0] || originalCat.featuredImage;
+    const subStr = `/${subCat.name.toLowerCase()}/`;
+    // Ingest subset of images matching the subcategory folder
+    const subImages = originalCat.images.filter(img => img.toLowerCase().includes(subStr));
+    const featuredImg = subImages.length > 0 ? subImages[0] : originalCat.featuredImage;
 
     const card = document.createElement('div');
     card.className = 'category-tile-card';
@@ -768,7 +756,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const card = document.createElement('div');
     card.className = 'category-tile-card individual-photo-card';
     
-    let titleStr = `${item.categoryName} Template #${currentIndex + 1}`;
+    // Use the exact photo name (file name) as requested by the user
+    let rawFileName = item.url.split('/').pop() || '';
+    let titleStr = rawFileName || `${item.categoryName} Template #${currentIndex + 1}`;
     
     card.innerHTML = `
       <div class="tile-img-wrap">
@@ -799,6 +789,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cat.type === 'logo') titleStr = `${cat.name} Branding Logos`;
     else if (cat.type === 'shirt') titleStr = `${cat.name} Custom T-Shirts`;
     else if (cat.type === 'poloshirt') titleStr = `${cat.name} Custom Polos`;
+    else if (cat.type === 'baseball') titleStr = `${cat.name} Baseball Jerseys`;
+    else if (cat.type === 'football') titleStr = `${cat.name} Football Jerseys`;
+    else if (cat.type === 'hoodie') titleStr = `${cat.name} Custom Hoodies`;
     
     card.innerHTML = `
       <div class="tile-img-wrap">
@@ -878,11 +871,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================================================
   const lightboxModal = document.getElementById('lightbox-modal');
   const lightboxImg = document.getElementById('lightbox-img');
-  const lightboxTag = document.getElementById('lightbox-tag');
-  const lightboxTitle = document.getElementById('lightbox-title');
-  const lightboxMeta = document.getElementById('lightbox-meta');
-  const lightboxInquireBtn = document.getElementById('lightbox-inquire-btn');
-  const lightboxFavActionBtn = document.getElementById('lightbox-fav-action-btn');
   
   const lightboxCloseBtn = document.getElementById('lightbox-close-btn');
   const lightboxPrevBtn = document.getElementById('lightbox-prev-btn');
@@ -897,16 +885,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!imageUrl) return;
 
     lightboxImg.src = imageUrl;
-    
-    lightboxTag.textContent = `${lightboxCategoryName.toUpperCase()} COLLECTION`;
-    lightboxTitle.textContent = `${lightboxCategoryName} Design #${lightboxActiveIndex + 1}`;
-    lightboxMeta.textContent = `Clean high-fidelity sportswear design concept, copyright of James Mesa. Ready for manufacturer sublimation setups. View design #${lightboxActiveIndex + 1} of ${lightboxActiveList.length}.`;
-    
-    const isFavorited = favorites.includes(imageUrl);
-    lightboxFavActionBtn.classList.toggle('favorited', isFavorited);
-    lightboxFavActionBtn.innerHTML = isFavorited ? 
-      `<i class="fa-solid fa-heart"></i> Favorited` : 
-      `<i class="fa-regular fa-heart"></i> Favorite`;
 
     lightboxModal.style.display = 'block';
     document.body.style.overflow = 'hidden'; 
