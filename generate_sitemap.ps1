@@ -18,7 +18,7 @@ if (Test-Path $dataPath) {
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
-    <loc>https://jamesmesa.github.io/Portfolio-James-Mesa/</loc>
+    <loc>https://jamesmesa.online/</loc>
 "@
 
     $xmlBody = ""
@@ -38,7 +38,7 @@ if (Test-Path $dataPath) {
             # Format the loc URL correctly
             # Note: We need to replace spaces with %20 for valid XML URL encoding
             $encodedImgPath = $imgPath.Replace(" ", "%20")
-            $imgUrl = "https://jamesmesa.github.io/Portfolio-James-Mesa/$encodedImgPath"
+            $imgUrl = "https://jamesmesa.online/$encodedImgPath"
             
             # Escape strings for valid XML
             $escapedImgUrl = Escape-XmlString $imgUrl
