@@ -1,3 +1,9 @@
+# Function to escape XML special characters
+function Escape-XmlString ($string) {
+    if ($null -eq $string) { return "" }
+    return $string.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace('"', "&quot;").Replace("'", "&apos;")
+}
+
 $dataPath = "C:\Users\James\Documents\GitHub\Portfolio-James-Mesa\data.js"
 $sitemapPath = "C:\Users\James\Documents\GitHub\Portfolio-James-Mesa\sitemap.xml"
 
@@ -34,9 +40,13 @@ if (Test-Path $dataPath) {
             $encodedImgPath = $imgPath.Replace(" ", "%20")
             $imgUrl = "https://jamesmesa.github.io/Portfolio-James-Mesa/$encodedImgPath"
             
+            # Escape strings for valid XML
+            $escapedImgUrl = Escape-XmlString $imgUrl
+            $escapedTitle = Escape-XmlString "$title Jersey Design"
+            
             $xmlBody += "`r`n    <image:image>"
-            $xmlBody += "`r`n      <image:loc>$imgUrl</image:loc>"
-            $xmlBody += "`r`n      <image:title>$title Jersey Design</image:title>"
+            $xmlBody += "`r`n      <image:loc>$escapedImgUrl</image:loc>"
+            $xmlBody += "`r`n      <image:title>$escapedTitle</image:title>"
             $xmlBody += "`r`n    </image:image>"
         }
     }
@@ -44,7 +54,10 @@ if (Test-Path $dataPath) {
     $xmlFooter = "`r`n  </url>`r`n</urlset>"
     
     $finalXml = $xmlHeader + $xmlBody + $xmlFooter
-    Set-Content -Path $sitemapPath -Value $finalXml -Encoding UTF8
+    
+    # Write UTF-8 WITHOUT a BOM using .NET IO class
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    [System.IO.File]::WriteAllText($sitemapPath, $finalXml, $utf8NoBom)
     
     Write-Host "Successfully generated Image Sitemap at sitemap.xml with $($seenImages.Count) images!"
 } else {
