@@ -1265,22 +1265,48 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Typewriter Hero Animation
+  // Scroll Reveal Observer for Section Headers
+  const revealHeaders = document.querySelectorAll('.section-header');
+  if ('IntersectionObserver' in window) {
+    const headerObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('reveal-active');
+          observer.unobserve(entry.target); // Trigger only once when entering view
+        }
+      });
+    }, { threshold: 0.15 });
+    
+    revealHeaders.forEach(header => {
+      headerObserver.observe(header);
+    });
+  } else {
+    // Fallback for older browsers
+    revealHeaders.forEach(header => header.classList.add('reveal-active'));
+  }
+
+  // Typewriter Hero Animation (Scroll-sensitive to prevent lag when scrolled away)
   const typewriterElement = document.getElementById('typewriter-text');
-  if (typewriterElement) {
+  const heroSection = document.getElementById('hero');
+  
+  if (typewriterElement && heroSection) {
     const words = ["Precise Design.", "Elite Sportswear.", "Factory-Ready Prints.", "Athletic Identity."];
     let wordIndex = 0;
-    let charIndex = typewriterElement.textContent.length;
+    let charIndex = 0;
     let isDeleting = false;
     let typingSpeed = 100;
+    let isHeroVisible = true;
+    let typingTimeout = null;
     
     function type() {
+      if (!isHeroVisible) return; // Pause running if scrolled out of view
+      
       const currentWord = words[wordIndex];
       
       if (isDeleting) {
         typewriterElement.textContent = currentWord.substring(0, charIndex - 1);
         charIndex--;
-        typingSpeed = 50; // Deleting is faster
+        typingSpeed = 50;
       } else {
         typewriterElement.textContent = currentWord.substring(0, charIndex + 1);
         charIndex++;
@@ -1288,19 +1314,32 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       if (!isDeleting && charIndex === currentWord.length) {
-        typingSpeed = 2000; // Pause at end of word
+        typingSpeed = 2000;
         isDeleting = true;
       } else if (isDeleting && charIndex === 0) {
         isDeleting = false;
         wordIndex = (wordIndex + 1) % words.length;
-        typingSpeed = 500; // Pause before typing next word
+        typingSpeed = 500;
       }
       
-      setTimeout(type, typingSpeed);
+      typingTimeout = setTimeout(type, typingSpeed);
     }
     
-    // Start after a brief delay
-    setTimeout(type, 1500);
+    // Observer to toggle active state when hero is in/out of the viewport
+    if ('IntersectionObserver' in window) {
+      const heroObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          isHeroVisible = entry.isIntersecting;
+          if (isHeroVisible) {
+            clearTimeout(typingTimeout);
+            type(); // Resume
+          }
+        });
+      }, { threshold: 0.05 });
+      heroObserver.observe(heroSection);
+    } else {
+      type(); // Fallback
+    }
   }
 
   // Initialize Catalogue
