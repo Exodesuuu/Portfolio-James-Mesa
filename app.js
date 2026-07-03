@@ -345,6 +345,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const subCategoryLabel = document.getElementById('sub-category-label');
   const subCategoryFiltersContainer = document.getElementById('sub-category-filters');
   const headbarFavToggleBtn = document.getElementById('favorites-toggle-btn');
+  
+  // Favorites Drawer DOM Elements
+  const favoritesDrawer = document.getElementById('favorites-drawer');
+  const drawerCloseBtn = document.getElementById('drawer-close-btn');
+  const drawerOverlay = document.getElementById('drawer-overlay');
+  const drawerItemsContainer = document.getElementById('drawer-items-container');
+  const drawerCount = document.getElementById('drawer-count');
+  const drawerClearBtn = document.getElementById('drawer-clear-btn');
+  const drawerInquireBtn = document.getElementById('drawer-inquire-btn');
 
   // Configure sub-category filter lists dynamically
   const subCategoryOptions = {
@@ -462,18 +471,110 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Headbar Favorites Button Click
-  if (headbarFavToggleBtn) {
-    headbarFavToggleBtn.addEventListener('click', () => {
-      showFavoritesOnly = !showFavoritesOnly;
-      headbarFavToggleBtn.classList.toggle('active', showFavoritesOnly);
-      if (filterFavToggle) filterFavToggle.classList.toggle('active', showFavoritesOnly);
+  // Open/Close and Render Drawer Functions
+  function openDrawer() {
+    if (favoritesDrawer) favoritesDrawer.classList.add('open');
+    if (drawerOverlay) drawerOverlay.classList.add('open');
+    renderDrawerItems();
+  }
+
+  function closeDrawer() {
+    if (favoritesDrawer) favoritesDrawer.classList.remove('open');
+    if (drawerOverlay) drawerOverlay.classList.remove('open');
+  }
+
+  function renderDrawerItems() {
+    if (!drawerItemsContainer) return;
+    drawerItemsContainer.innerHTML = '';
+    
+    if (favorites.length === 0) {
+      drawerItemsContainer.innerHTML = `
+        <div class="drawer-empty-state">
+          <i class="fa-regular fa-heart"></i>
+          <p>Your shortlist is empty.<br>Click the heart icon on any design to add it!</p>
+        </div>
+      `;
+      if (drawerCount) drawerCount.textContent = '0';
+      return;
+    }
+    
+    if (drawerCount) drawerCount.textContent = favorites.length;
+    
+    favorites.forEach((url) => {
+      let rawFileName = url.split('/').pop() || '';
+      rawFileName = rawFileName.replace(/\.(jpg|jpeg|png|webp|gif|svg)$/i, '');
       
-      const target = document.getElementById('catalogue');
-      if (target) {
-        target.scrollIntoView({ behavior: 'smooth' });
+      const card = document.createElement('div');
+      card.className = 'drawer-item-card';
+      card.innerHTML = `
+        <img src="${url}" alt="${rawFileName}" class="drawer-item-img">
+        <div class="drawer-item-info">
+          <h4 class="drawer-item-title">${rawFileName}</h4>
+        </div>
+        <button class="drawer-item-remove" aria-label="Remove template"><i class="fa-solid fa-trash"></i></button>
+      `;
+      
+      card.querySelector('.drawer-item-remove').addEventListener('click', () => {
+        toggleFavorite(url);
+      });
+      
+      drawerItemsContainer.appendChild(card);
+    });
+  }
+
+  // Headbar Favorites Button Click -> Open Drawer
+  if (headbarFavToggleBtn) {
+    headbarFavToggleBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openDrawer();
+    });
+  }
+
+  // Bind Drawer Close actions
+  if (drawerCloseBtn) drawerCloseBtn.addEventListener('click', closeDrawer);
+  if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
+
+  if (drawerClearBtn) {
+    drawerClearBtn.addEventListener('click', () => {
+      favorites = [];
+      try {
+        localStorage.setItem('jm_portfolio_favorites', JSON.stringify(favorites));
+      } catch (e) {
+        console.warn('Could not save to localStorage.', e);
       }
-      applyFilters();
+      
+      renderDrawerItems();
+      
+      // Update count badge
+      const favCountBadge = document.getElementById('fav-count');
+      if (favCountBadge) {
+        favCountBadge.textContent = '0';
+      }
+      
+      // Update grid tiles
+      const activeTiles = document.querySelectorAll('.category-tile-card');
+      activeTiles.forEach(tile => {
+        const tileFavBtn = tile.querySelector('.tile-fav-btn');
+        if (tileFavBtn) {
+          tileFavBtn.innerHTML = `<i class="fa-regular fa-heart"></i>`;
+        }
+      });
+      
+      // Update lightbox
+      if (lightboxFavActionBtn) {
+        lightboxFavActionBtn.classList.remove('favorited');
+        lightboxFavActionBtn.innerHTML = `<i class="fa-regular fa-heart"></i> Favorite`;
+      }
+      
+      if (showFavoritesOnly) {
+        applyFilters();
+      }
+    });
+  }
+
+  if (drawerInquireBtn) {
+    drawerInquireBtn.addEventListener('click', () => {
+      window.open('https://forms.gle/Jr83hkyqjNx4mRbPA', '_blank');
     });
   }
 
@@ -928,6 +1029,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (favCountBadge) {
       favCountBadge.textContent = favorites.length;
     }
+    
+    // Keep shortlist drawer in sync
+    renderDrawerItems();
     
     // Toggle active styles on headbar if showing favorites only
     if (showFavoritesOnly) {

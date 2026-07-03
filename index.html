@@ -528,6 +528,24 @@
     </div>
   </div>
 
+  <!-- Favorites Shortlist Drawer -->
+  <div id="favorites-drawer" class="favorites-drawer">
+    <div class="drawer-header">
+      <h3>My Shortlist (<span id="drawer-count">0</span>)</h3>
+      <button id="drawer-close-btn" class="drawer-close" aria-label="Close Drawer"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    
+    <div id="drawer-items-container" class="drawer-items">
+      <!-- Dynamically filled with shortlisted templates -->
+    </div>
+    
+    <div class="drawer-footer">
+      <button id="drawer-clear-btn" class="btn btn-secondary btn-block">Clear Shortlist</button>
+      <button id="drawer-inquire-btn" class="btn btn-primary btn-block"><i class="fa-solid fa-paper-plane"></i> Inquire for Shortlist</button>
+    </div>
+  </div>
+  <div id="drawer-overlay" class="drawer-overlay"></div>
+
   <!-- Script Modules -->
   <script src="data.js"></script>
   <script src="app.js"></script>
