@@ -51,9 +51,15 @@ if (Test-Path $dataPath) {
         }
     }
 
-    $xmlFooter = "`r`n  </url>`r`n</urlset>"
+    $xmlFooter = @"
+  </url>
+  <url>
+    <loc>https://www.jamesmesa.online/resume-project/index.html</loc>
+  </url>
+</urlset>
+"@
     
-    $finalXml = $xmlHeader + $xmlBody + $xmlFooter
+    $finalXml = $xmlHeader + $xmlBody + "`r`n" + $xmlFooter
     
     # Write UTF-8 WITHOUT a BOM using .NET IO class
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
