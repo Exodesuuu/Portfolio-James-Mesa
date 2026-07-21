@@ -467,6 +467,13 @@
         "Path":  "/design/poloshirt-custom-jersey-design",
         "IsDesignCategory":  true,
         "Images":  [
+                       "images/poloshirt/YES-O.jpg",
+                       "images/poloshirt/SSLG.jpg",
+                       "images/poloshirt/SSLG 1 (2).jpg",
+                       "images/poloshirt/RCY.jpg",
+                       "images/poloshirt/MABINI SPORTS CLUB.jpg",
+                       "images/poloshirt/BKD (2).jpg",
+                       "images/poloshirt/BKD 1.jpg",
                        "images/poloshirt/SHAO MAI 2.jpg",
                        "images/poloshirt/YOUNG MANAGER.jpg",
                        "images/poloshirt/YOUNG MANAGER 1.jpg",
